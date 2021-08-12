@@ -27,23 +27,27 @@ export class App extends Component {
     modalBigImage: '',
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    const prevRequest = prevState.searchRequest;
-    const nextRequest = this.state.searchRequest;
+  componentDidUpdate() {
 
-    if (prevRequest !== nextRequest) {
       window.scrollTo({
         top: document.documentElement.scrollHeight,
         behavior: 'smooth',
       });
-    };
-  }
+
+  };
 
    
     handleFormSubmit = searchRequest => {
       this.setState({ searchRequest, isLoading: true});
 
-     fetchImages(searchRequest, 1).then(response => this.setState({ images: response.hits, page: +1})).catch(error => this.setState({ error })).finally(() => this.setState({isLoading: false }));
+      fetchImages(searchRequest, 1).then(response => {
+        if (response.hits.length === 0) {
+          
+          this.setState({images: ''})
+          this.notify()
+          return
+        } this.setState({ images: response.hits, page: +1 })
+      }).catch(error => this.setState({ error })).finally(() => this.setState({isLoading: false }));
     
     };
 
@@ -69,7 +73,7 @@ export class App extends Component {
   };
 
   render() {
-    const { images, isLoading, page, modalBigImage} = this.state;
+    const { images, isLoading, modalBigImage} = this.state;
     
     
     return (
@@ -77,23 +81,17 @@ export class App extends Component {
         <SearchBar onSubmit={this.handleFormSubmit} images={images} />
         <Fragment>
         {isLoading && <Loader/>}
-         {(images.length < 1 && page === 1) && this.notify()} 
           {images.length > 0 && <ImageGallery images={images} onClick={ this.onOpenModalClick}/>}
           {images.length > 11 && <Button onClick={this.handleButtonClick} />}
           {modalBigImage && <Modal
           modalBigImage={modalBigImage}
           closeModal={ this.closeModal}/>}
         </Fragment>
-        
-        
+
       <ToastContainer autoClose={2000} limit={1} />    
-     
-      
        </>
     
-    /* <Modal/> 
-       */
-       
+  
     );
     
   };
